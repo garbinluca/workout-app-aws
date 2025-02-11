@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Workout APP
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.11
+    MemorySize: 128
+    Environment:
+      Variables:
+        WORKOUTS_TABLE: !Ref WorkoutTable
+
+Resources:
+  # DynamoDB Table
+  WorkoutTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: workout-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: scheduled_date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: workout-date-index
+          KeySchema:
+            - AttributeName: scheduled_date
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # Lambda Layer
+  WorkoutRequestsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: workout-requests-layer
+      Description: Layer containing requests library for Workout App
+      ContentUri: ./layer/
+      CompatibleRuntimes:
+        - python3.9
+      RetentionPolicy: Retain
+
+  # Lambda Functions
+  WorkoutCreatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: workout-creator
+      CodeUri: ./
+      Handler: workout_functions.create_next_workout
+      Layers:
+        - !Ref WorkoutRequestsLayer
+      Environment:
+        Variables:
+          WORKOUTS_TABLE: !Ref WorkoutTable
+          NOTIFICATION_API_ENDPOINT: 'https://api...com'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WorkoutTable
+      Events:
+        ScheduleEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 6 ? * TUE,THU *)
+            Name: workout-creation-schedule
+            Description: Creates new workout every Tuesday and Thursday at 8:00 AM IT
+            Enabled: true
+
+  WorkoutGetterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: workout-getter
+      CodeUri: ./
+      Handler: workout_functions.get_workout
+      Layers:
+        - !Ref WorkoutRequestsLayer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref WorkoutTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /workout/{id}
+            Method: GET
+
+  WorkoutUpdaterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: workout-updater
+      CodeUri: ./
+      Handler: workout_functions.update_workout
+      Layers:
+        - !Ref WorkoutRequestsLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WorkoutTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /workout/{id}
+            Method: PUT
+
+Outputs:
+  WorkoutApi:
+    Description: "API Gateway endpoint URL for Workout App"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  WorkoutTable:
+    Description: "DynamoDB Table Name for Workout App"
+    Value: !Ref WorkoutTable
