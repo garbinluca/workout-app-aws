@@ -1,0 +1,13 @@
+version = 0.1
+[default.global.parameters]
+[default.deploy.parameters]
+stack_name = "workout-app"
+resolve_s3 = true
+s3_prefix = "..."
+region = "eu-west-1"
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+parameter_overrides = [
+  "NotificationEndpoint=\"https://example.com/api/message\"",
+  "FrontUrl=\"https://example.com/workout\"",
+]

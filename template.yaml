@@ -2,6 +2,16 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Workout APP
 
+Parameters:
+  NotificationEndpoint:
+    Type: String
+    Description: "URL dell'endpoint per le notifiche"
+    Default: "XXX"
+  FrontUrl:
+    Type: String
+    Description: "URL dell'endpoint per le notifiche"
+    Default: "XXX"
+
 Globals:
   Function:
     Timeout: 30
@@ -10,6 +20,8 @@ Globals:
     Environment:
       Variables:
         WORKOUTS_TABLE: !Ref WorkoutTable
+        NOTIFICATION_API_ENDPOINT: !Ref NotificationEndpoint
+        FRONT_URL: !Ref FrontUrl
 
 Resources:
   # DynamoDB Table
@@ -57,7 +69,8 @@ Resources:
       Environment:
         Variables:
           WORKOUTS_TABLE: !Ref WorkoutTable
-          NOTIFICATION_API_ENDPOINT: 'https://api...com'
+          NOTIFICATION_API_ENDPOINT: !Ref NotificationEndpoint
+          FRONT_URL: !Ref FrontUrl
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref WorkoutTable

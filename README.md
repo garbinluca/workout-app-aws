@@ -1,39 +1,20 @@
 # Workout App
 
-```
-# Creazione layer
-python3.12 -m venv venv
-source venv/bin/activate
-mkdir python
-cd python
-pip install numpy -t .
-cd ..
-zip -r workout-layers.zip python
-# Download /home/cloudshell-user/packages/workout-layers.zip
+APP per la gestione di allenamenti in palestra basati sul protocollo Strongfits 5x5. 
 
-```
+Questo progetto fornisce tre soluzioni:
+- metodo che viene invocato due volte alla settimana che crea il WOD giornaliero e che lo invia tramite API esterna
+- metodo di GET dell'allenamento
+- metodo di PUT dell'allenamento
+Stack tecnologico:
+- Python
+- AWS DynamoDB
+- AWS SAM
 
-```
-# Creazione layer
-mkdir -p layer/python
-cd layer/python
-pip install requests -t .
-cd ../..
-
-```
-
-
-```
-# Costruisce il package
+```bash
+# Comandi
 sam build
-
-# Deploya l'applicazione (interattivo)
-sam deploy --guided
-
-# Per i deploy successivi puoi usare semplicemente
 sam deploy
-
-# updates
-sam build && sam deploy
-
 ```
+
+*Non presenti nel repo: semplice pagina HTML che legge i dati e invia l'aggiornamento dell'attività*

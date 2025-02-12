@@ -7,6 +7,9 @@ import requests
 import os
 import uuid
 
+NOTIFICATION_API_ENDPOINT = os.environ['NOTIFICATION_API_ENDPOINT']
+FRONT_URL = os.environ['FRONT_URL']
+
 # Inizializza il client DynamoDB
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('workout-table')
@@ -184,7 +187,7 @@ def update_workout(event, context):
 
 def send_message(id):
 
-    link = f"https://api.....com/{id}"
+    link = f"{FRONT_URL}/workout/{id}"
 
     try:
         payload = {
@@ -197,12 +200,13 @@ def send_message(id):
         }
         
         api_response = requests.post(
-            os.environ['NOTIFICATION_API_ENDPOINT'],
+            NOTIFICATION_API_ENDPOINT,
             json=payload,
             headers={'Content-Type': 'application/json'},
             timeout=5  # Timeout di 5 secondi
         )
         api_response.raise_for_status()  # Solleva un'eccezione per status code >= 400
+
     except requests.exceptions.RequestException as e:
         print(f"Errore nell'invio della notifica all'API esterna: {str(e)}")
         # Decidi se vuoi gestire l'errore in modo particolare
